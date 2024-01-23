@@ -89,10 +89,17 @@ const getVideoById = asyncHandler(async (req, res) => {
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
     
+    if(userId){
+        if(!isValidObjectId(userId)){
+            throw new ApiError(400, "Invalid User ID")
+        }
+    }
+
     const baseQuery = userId ? { owner: userId } : {};
 
     if (query) {
         baseQuery.title = { $regex: new RegExp(query, 'i') };
+        baseQuery.isPublished = true
     }
 
     const sort = sortBy ? { [sortBy]: sortType === 'desc' ? -1 : 1 } : {};
@@ -217,16 +224,19 @@ const deleteVideo = asyncHandler(async (req, res) => {
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
 
-    let videoDetails;
-
-    videoDetails = await Video.findById(
+    
+    if(!isValidObjectId(videoId)){
+        throw new ApiError(400, "Invalid videoId ID")
+    }
+    const videoDetails = await Video.findById(
         videoId
     )
+    
     if(!videoDetails){
-        throw new ApiError("Video not available")
+        throw new ApiError(400, "Video not found")
     }
     const publishedStatus = videoDetails.isPublished;
-    videoDetails = await Video.findByIdAndUpdate(
+    const video = await Video.findByIdAndUpdate(
         videoId,
         {
             $set:{ isPublished :!publishedStatus }
@@ -243,7 +253,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     .json(
         new ApiResponse(
             200,
-            videoDetails,
+            video,
             "Video fetched successfully"
         )
     )
