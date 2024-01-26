@@ -300,7 +300,7 @@ const updateUserAvatar = asyncHandler(async (req,res) =>{
     const avatar = await uploadOnCloudinary(avatarLocalPath);
 
     if(!avatar.url){
-        throw new ApiError(400, "Error while uploading avatar")
+        throw new ApiError(500, "Error while uploading avatar")
     }
 
     const user = await User.findByIdAndUpdate(
@@ -409,7 +409,6 @@ const getUserChannelProfile = asyncHandler(async (req,res) => {
             }
         }
     ])
-    console.log(channel)
 
     if(!channel?.length){
         throw new ApiError(404, "channel doess not exists")
