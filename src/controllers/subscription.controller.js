@@ -14,7 +14,9 @@ const toggleSubscription = asyncHandler(async (req, res) => {
     }
 
     const channel = await User.findById(channelId);
-
+    if(!channel){
+        throw new ApiResponse(400,"Channel not found")
+    }
     const currentUser = req.user;
     //check if user already subscribed
     //if subscribed delete that subscription object
